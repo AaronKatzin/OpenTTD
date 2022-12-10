@@ -212,6 +212,7 @@ struct SaveLoadParams {
 
 	uint16 game_speed;                   ///< The game speed when saving started.
 	bool saveinprogress;                 ///< Whether there is currently a save in progress.
+	bool fast_forward_via_key;           ///< Whether fast forward is via key pressed.
 };
 
 static SaveLoadParams _sl; ///< Parameters used for/at saveload.
@@ -2922,6 +2923,9 @@ static void SaveFileStart()
 {
 	_sl.game_speed = _game_speed;
 	_game_speed = 100;
+
+	// to determine if to fast forward after autosave is completed
+	_sl.fast_forward_via_key = VideoDriver::GetInstance()->isFastForwardViaKey();
 	SetMouseCursorBusy(true);
 
 	InvalidateWindowData(WC_STATUS_BAR, 0, SBI_SAVELOAD_START);
@@ -2931,7 +2935,7 @@ static void SaveFileStart()
 /** Update the gui accordingly when saving is done and release locks on saveload. */
 static void SaveFileDone()
 {
-	if (_game_mode != GM_MENU) _game_speed = _sl.game_speed;
+	if (_game_mode != GM_MENU && !(_sl.fast_forward_via_key)) _game_speed = _sl.game_speed;
 	SetMouseCursorBusy(false);
 
 	InvalidateWindowData(WC_STATUS_BAR, 0, SBI_SAVELOAD_FINISH);
